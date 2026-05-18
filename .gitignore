@@ -209,6 +209,29 @@ tempCodeRunnerFile.py
 # PyPI configuration file
 .pypirc
 
+# Local runtime state
+data/
+*.db-journal
+*.sqlite-journal
+*.sqlite3-journal
+
+# Vendored SimpleMem local/runtime state
+external/SimpleMem/.env
+external/SimpleMem/.env.*
+!external/SimpleMem/.env.example
+external/SimpleMem/config.py
+external/SimpleMem/MCP/data/
+external/SimpleMem/lancedb_data/
+external/SimpleMem/**/*.db
+external/SimpleMem/**/*.sqlite
+external/SimpleMem/**/*.sqlite3
+external/SimpleMem/**/*.log
+
+# Non-runtime SimpleMem media assets; not needed for Railway Docker deploy.
+external/SimpleMem/fig/
+external/SimpleMem/MCP/reference/fig/
+external/SimpleMem/OmniSimpleMem/assets/
+
 # Marimo
 marimo/_static/
 marimo/_lsp/
