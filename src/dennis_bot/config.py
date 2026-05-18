@@ -54,6 +54,11 @@ class Settings(BaseSettings):
 
     telegram_sticker_packs: list[str] = Field(default_factory=list)
 
+    @field_validator("*", mode="before")
+    @classmethod
+    def strip_env_quotes(cls, value: object) -> object:
+        return _strip_optional_env_quotes(value)
+
     @field_validator("admin_telegram_user_ids", mode="before")
     @classmethod
     def parse_admin_ids(cls, value: object) -> list[int]:
@@ -62,6 +67,7 @@ class Settings(BaseSettings):
     @field_validator("telegram_sticker_packs", mode="before")
     @classmethod
     def parse_sticker_packs(cls, value: object) -> list[str]:
+        value = _strip_optional_env_quotes(value)
         if value is None or value == "":
             return []
         if isinstance(value, str):
@@ -73,6 +79,7 @@ class Settings(BaseSettings):
     @field_validator("telegram_bot_user_id", "trusted_group_chat_id", mode="before")
     @classmethod
     def parse_optional_int(cls, value: object) -> int | None:
+        value = _strip_optional_env_quotes(value)
         if value is None or value == "":
             return None
         return int(value)
@@ -125,6 +132,7 @@ class Settings(BaseSettings):
 
 
 def _parse_int_list(value: object) -> list[int]:
+    value = _strip_optional_env_quotes(value)
     if value is None or value == "":
         return []
     if isinstance(value, int):
@@ -147,6 +155,15 @@ def _parse_int_list(value: object) -> list[int]:
                 continue
         return parsed
     return []
+
+
+def _strip_optional_env_quotes(value: object) -> object:
+    if not isinstance(value, str):
+        return value
+    stripped = value.strip()
+    if len(stripped) >= 2 and stripped[0] == stripped[-1] and stripped[0] in {"'", '"'}:
+        return stripped[1:-1]
+    return value
 
 
 @lru_cache

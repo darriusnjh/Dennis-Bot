@@ -20,6 +20,28 @@ def test_settings_parse_comma_separated_lists_and_paths() -> None:
     assert settings.database_path == Path("data/test.sqlite3")
 
 
+def test_settings_tolerate_quoted_env_values(monkeypatch) -> None:
+    monkeypatch.setenv("APP_PORT", '"8000"')
+    monkeypatch.setenv("TELEGRAM_USE_POLLING", '"false"')
+    monkeypatch.setenv("TELEGRAM_BOT_USER_ID", '"8732088288"')
+    monkeypatch.setenv("TRUSTED_GROUP_CHAT_ID", '"-5207380593"')
+    monkeypatch.setenv("ADMIN_TELEGRAM_USER_IDS", '"5611681048"')
+    monkeypatch.setenv("SIMPLEMEM_MAX_SESSION_MESSAGES", '"30"')
+    monkeypatch.setenv("OPENAI_BASE_URL", '""')
+    monkeypatch.setenv("TELEGRAM_STICKER_PACKS", '""')
+
+    settings = Settings(_env_file=None)
+
+    assert settings.app_port == 8000
+    assert settings.telegram_use_polling is False
+    assert settings.telegram_bot_user_id == 8732088288
+    assert settings.trusted_group_chat_id == -5207380593
+    assert settings.admin_telegram_user_ids == [5611681048]
+    assert settings.simplemem_max_session_messages == 30
+    assert settings.openai_base_url == ""
+    assert settings.telegram_sticker_packs == []
+
+
 def test_runtime_validation_requires_webhook_secret_only_in_webhook_mode() -> None:
     settings = Settings(
         telegram_bot_token="123456789:abcdefghijklmnopqrstuvwxyzABCDE",
