@@ -27,4 +27,4 @@ EXPOSE 8000
 
 # Entrypoint ensures data dirs exist and are writable by appuser (bind mount or volume)
 ENTRYPOINT ["/app/scripts/docker-entrypoint.sh"]
-CMD ["python", "run.py", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "python run.py --host 0.0.0.0 --port ${PORT:-8000}"]
