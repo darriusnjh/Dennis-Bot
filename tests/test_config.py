@@ -38,6 +38,28 @@ def test_runtime_validation_requires_webhook_secret_only_in_webhook_mode() -> No
     )
 
 
+def test_runtime_validation_requires_public_https_base_url_for_production_webhook() -> None:
+    settings = Settings(
+        app_env="production",
+        base_url="http://localhost:8000",
+        telegram_bot_token="123456789:abcdefghijklmnopqrstuvwxyzABCDE",
+        admin_telegram_user_ids="123",
+        openai_api_key="sk-test-value",
+        simplemem_mcp_url="https://mcp.simplemem.cloud/mcp",
+        simplemem_mcp_token="simplemem-token-value",
+        telegram_webhook_secret="webhook-secret-value",
+    )
+
+    assert (
+        "BASE_URL must be the public HTTPS Railway URL in production webhook mode"
+        in settings.validate_for_runtime(mode="webhook")
+    )
+    assert (
+        "BASE_URL must be the public HTTPS Railway URL in production webhook mode"
+        not in settings.validate_for_runtime(mode="polling")
+    )
+
+
 def test_simplemem_session_limit_must_be_positive() -> None:
     with pytest.raises(ValidationError, match="SIMPLEMEM_MAX_SESSION_MESSAGES must be at least 1"):
         Settings(simplemem_max_session_messages=0)

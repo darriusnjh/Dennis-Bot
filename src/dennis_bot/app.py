@@ -135,6 +135,22 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             },
             brightdata_config_health(settings),
         ]
+        if mode == "webhook":
+            webhook_error = getattr(app.state, "telegram_webhook_registration_error", None)
+            telegram_config_errors = [
+                error
+                for error in config_errors
+                if error.startswith("TELEGRAM") or error.startswith("BASE_URL")
+            ]
+            subsystems.append(
+                {
+                    "ok": webhook_error is None and not telegram_config_errors,
+                    "subsystem": "telegram_webhook",
+                    "url": settings.telegram_webhook_url,
+                    "error": webhook_error,
+                    "config_errors": telegram_config_errors,
+                }
+            )
         monitor_service = getattr(app.state, "monitor_service", None)
         if monitor_service is not None:
             subsystems.append(await monitor_count_health(monitor_service))
@@ -273,11 +289,21 @@ async def _start_telegram_ingress(app: FastAPI) -> None:
         return
 
     if settings.app_env == "production":
-        await telegram_client.set_webhook(
-            settings.telegram_webhook_url,
-            secret_token=settings.telegram_webhook_secret,
-            allowed_updates=["message", "edited_message", "channel_post", "edited_channel_post"],
-        )
+        try:
+            await telegram_client.set_webhook(
+                settings.telegram_webhook_url,
+                secret_token=settings.telegram_webhook_secret,
+                allowed_updates=[
+                    "message",
+                    "edited_message",
+                    "channel_post",
+                    "edited_channel_post",
+                ],
+            )
+            app.state.telegram_webhook_registration_error = None
+        except Exception as exc:
+            app.state.telegram_webhook_registration_error = str(exc)
+            logger.exception("Failed to register Telegram webhook; app will keep running")
 
 
 async def _handle_normalized_update(app: FastAPI, update: NormalizedTelegramUpdate) -> bool:

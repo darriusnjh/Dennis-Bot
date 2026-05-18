@@ -3,6 +3,7 @@ from __future__ import annotations
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
+from urllib.parse import urlparse
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -109,6 +110,17 @@ class Settings(BaseSettings):
             errors.append("SIMPLEMEM_MCP_TOKEN is required for SimpleMem MCP")
         if mode == "webhook" and not self.telegram_webhook_secret:
             errors.append("TELEGRAM_WEBHOOK_SECRET is required for webhook mode")
+        if mode == "webhook" and self.app_env == "production":
+            parsed_base_url = urlparse(self.base_url)
+            local_hosts = {"localhost", "127.0.0.1", "0.0.0.0"}
+            if (
+                parsed_base_url.scheme != "https"
+                or not parsed_base_url.netloc
+                or (parsed_base_url.hostname or "").lower() in local_hosts
+            ):
+                errors.append(
+                    "BASE_URL must be the public HTTPS Railway URL in production webhook mode"
+                )
         return errors
 
 

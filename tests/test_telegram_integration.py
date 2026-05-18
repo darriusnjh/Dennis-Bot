@@ -7,6 +7,7 @@ import httpx
 import pytest
 
 from dennis_bot.app import _handle_normalized_update
+from dennis_bot.app import _start_telegram_ingress
 from dennis_bot.admin.policy import AdminPolicy
 from dennis_bot.config import Settings
 from dennis_bot.runtime.adapters import NaturalMessageHandler
@@ -377,6 +378,30 @@ async def test_telegram_client_reads_api_error_from_http_error_body() -> None:
         await client.set_webhook("https://example.test/hook", secret_token="bad secret!")
 
     assert "secret token contains unallowed characters" in exc_info.value.description
+
+
+@pytest.mark.asyncio
+async def test_telegram_webhook_registration_failure_does_not_crash_startup() -> None:
+    class FailingTelegram:
+        async def set_webhook(self, *args, **kwargs):  # noqa: ANN002, ANN003
+            del args, kwargs
+            raise TelegramApiError("setWebhook", "bad webhook")
+
+    settings = Settings(
+        app_env="production",
+        base_url="https://dennis-bot.example.com",
+        telegram_bot_token="123456789:abcdefghijklmnopqrstuvwxyzABCDE",
+        admin_telegram_user_ids="123",
+        openai_api_key="sk-test-value",
+        simplemem_mcp_url="https://mcp.simplemem.cloud/mcp",
+        simplemem_mcp_token="simplemem-token-value",
+        telegram_webhook_secret="webhook-secret-value",
+    )
+    app = SimpleNamespace(state=SimpleNamespace(settings=settings, telegram_client=FailingTelegram()))
+
+    await _start_telegram_ingress(app)
+
+    assert app.state.telegram_webhook_registration_error == "Telegram setWebhook failed: bad webhook"
 
 
 @pytest.mark.asyncio

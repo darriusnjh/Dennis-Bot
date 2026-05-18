@@ -42,6 +42,7 @@ def test_health_endpoint_shape_for_valid_webhook_config() -> None:
     assert body["simplemem_tenant_id"] == "dennis-bot-global"
     assert any(item["subsystem"] == "simplemem" for item in body["subsystems"])
     assert any(item["subsystem"] == "brightdata" for item in body["subsystems"])
+    assert any(item["subsystem"] == "telegram_webhook" for item in body["subsystems"])
 
 
 def test_health_endpoint_reports_missing_config_without_secret_values() -> None:
@@ -58,6 +59,9 @@ def test_health_endpoint_reports_missing_config_without_secret_values() -> None:
     assert "SIMPLEMEM_MCP_TOKEN is required for SimpleMem MCP" in body["config_errors"]
     assert "TELEGRAM_WEBHOOK_SECRET is required for webhook mode" in body["config_errors"]
     assert all("token=" not in error.lower() for error in body["config_errors"])
+    webhook = next(item for item in body["subsystems"] if item["subsystem"] == "telegram_webhook")
+    assert webhook["ok"] is False
+    assert "TELEGRAM_BOT_TOKEN is required" in webhook["config_errors"]
 
 
 def test_startup_rejects_directory_database_path(tmp_path) -> None:
