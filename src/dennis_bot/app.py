@@ -61,6 +61,11 @@ async def lifespan(app: FastAPI):
     if errors:
         logger.warning("Runtime configuration has %d issue(s): %s", len(errors), "; ".join(errors))
     settings.database_path.parent.mkdir(parents=True, exist_ok=True)
+    if settings.database_path.exists() and settings.database_path.is_dir():
+        raise RuntimeError(
+            "DATABASE_PATH must point to a SQLite file, not a directory. "
+            f"Got {settings.database_path!s}; use a path like /app/data/dennis_bot.sqlite3."
+        )
     db_connection = await aiosqlite.connect(settings.database_path)
     db_connection.row_factory = aiosqlite.Row
     await db_connection.execute("PRAGMA foreign_keys = ON")

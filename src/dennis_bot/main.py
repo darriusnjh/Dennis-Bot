@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 import uvicorn
 
 from dennis_bot.app import create_app
@@ -13,7 +15,7 @@ def main() -> None:
         "dennis_bot.app:create_app",
         factory=True,
         host=settings.app_host,
-        port=settings.app_port,
+        port=int(os.getenv("PORT") or settings.app_port),
         reload=reload_enabled,
     )
 

@@ -5,6 +5,16 @@ from pathlib import Path
 import aiosqlite
 
 
+def _migration_directory() -> Path:
+    source_root = Path(__file__).resolve().parents[3] / "migrations"
+    candidates = (Path.cwd() / "migrations", source_root)
+    for candidate in candidates:
+        if candidate.is_dir():
+            return candidate
+    formatted = ", ".join(str(candidate) for candidate in candidates)
+    raise FileNotFoundError(f"Could not find database migrations directory. Checked: {formatted}")
+
+
 async def run_migrations(connection: aiosqlite.Connection) -> None:
     await connection.execute(
         """
@@ -14,7 +24,7 @@ async def run_migrations(connection: aiosqlite.Connection) -> None:
         )
         """
     )
-    migration_directory = Path(__file__).resolve().parents[3] / "migrations"
+    migration_directory = _migration_directory()
     migration_paths = sorted(path for path in migration_directory.iterdir() if path.name.endswith(".sql"))
     for migration_path in migration_paths:
         version = migration_path.name

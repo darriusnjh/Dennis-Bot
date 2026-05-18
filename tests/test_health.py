@@ -60,6 +60,14 @@ def test_health_endpoint_reports_missing_config_without_secret_values() -> None:
     assert all("token=" not in error.lower() for error in body["config_errors"])
 
 
+def test_startup_rejects_directory_database_path(tmp_path) -> None:
+    settings = Settings(_env_file=None, database_path=tmp_path)
+
+    with pytest.raises(RuntimeError, match="DATABASE_PATH must point to a SQLite file"):
+        with TestClient(create_app(settings)):
+            pass
+
+
 class FakeSimpleMem:
     async def health_check(self) -> dict[str, object]:
         return {"ok": True, "project": "dennis-bot"}
@@ -103,3 +111,5 @@ def test_dockerfile_copies_migrations_into_image() -> None:
     dockerfile = open("Dockerfile", encoding="utf-8").read()
 
     assert "COPY migrations ./migrations" in dockerfile
+    assert "gosu" in dockerfile
+    assert 'ENTRYPOINT ["/app/scripts/docker-entrypoint.sh"]' in dockerfile

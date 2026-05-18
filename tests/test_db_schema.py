@@ -1,6 +1,15 @@
 from pathlib import Path
 
 from dennis_bot.db import Database, run_migrations
+from dennis_bot.db.migrations import _migration_directory
+
+
+def test_migration_directory_prefers_working_directory(monkeypatch, tmp_path: Path) -> None:
+    migrations = tmp_path / "migrations"
+    migrations.mkdir()
+    monkeypatch.chdir(tmp_path)
+
+    assert _migration_directory() == migrations
 
 
 async def test_schema_creation_creates_prd_tables(tmp_path: Path) -> None:
