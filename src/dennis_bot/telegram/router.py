@@ -83,6 +83,8 @@ class CommandRouter:
             "Status:",
             f"mode: {'polling' if self.settings.telegram_use_polling else 'webhook'}",
             f"config: {'ok' if not issues else f'{len(issues)} issue(s)'}",
+            f"chat_id: {update.chat.id}",
+            f"chat_type: {update.chat.type}",
             f"trusted_group: {'yes' if self.policy.is_trusted_group(update.chat.id) else 'no'}",
             f"full_memory_access: {'yes' if self.policy.has_full_memory_access(update) else 'no'}",
         ]

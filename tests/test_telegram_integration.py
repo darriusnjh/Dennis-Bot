@@ -461,6 +461,24 @@ async def test_policy_trusted_group_full_memory_access() -> None:
 
 
 @pytest.mark.asyncio
+async def test_status_command_includes_chat_id_and_type() -> None:
+    fake = FakeTelegram()
+    router = CommandRouter(
+        telegram=fake,
+        policy=AdminPolicy(admin_user_ids=frozenset({111})),
+        settings=Settings(admin_telegram_user_ids=[111]),
+    )
+    update = _command_update("/status@DennisBot", chat_id=-12345, chat_type="supergroup")
+    assert update is not None
+
+    await router.handle_update(update)
+
+    text = fake.messages[-1]["text"]
+    assert "chat_id: -12345" in text
+    assert "chat_type: supergroup" in text
+
+
+@pytest.mark.asyncio
 async def test_router_sends_sticker_alias() -> None:
     fake = FakeTelegram()
     store = InMemoryStickerAliasStore()
