@@ -117,3 +117,10 @@ def test_dockerfile_copies_migrations_into_image() -> None:
     assert "COPY migrations ./migrations" in dockerfile
     assert "gosu" in dockerfile
     assert 'ENTRYPOINT ["/app/scripts/docker-entrypoint.sh"]' in dockerfile
+
+
+def test_docker_entrypoint_falls_back_when_volume_chown_fails() -> None:
+    entrypoint = open("scripts/docker-entrypoint.sh", encoding="utf-8").read()
+
+    assert "could not chown" in entrypoint
+    assert 'exec "$@"' in entrypoint
