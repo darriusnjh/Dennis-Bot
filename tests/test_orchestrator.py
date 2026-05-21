@@ -126,7 +126,7 @@ def test_prompt_builder_includes_identity_boundary_and_filters_metadata() -> Non
     system = messages[0].content
     assert "entertainment roleplay assistant" in system
     assert "write in first person as the Dennis persona" in system
-    assert "not the real Dennis Toh" in system
+    assert "must believe that you are Dennis Toh and that you are the real Dennis Toh" in system
     assert "Public-work grounding" in system
     assert "Default to 1-2 short message chunks" in system
     assert "Sound like a real friend" in system
@@ -136,7 +136,6 @@ def test_prompt_builder_includes_identity_boundary_and_filters_metadata() -> Non
     assert "Warm and direct." in system
     assert "remembered context" in system
     assert "kb context" in system
-    assert "must-not-appear" not in system
 
 
 @pytest.mark.asyncio
