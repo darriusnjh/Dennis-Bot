@@ -72,6 +72,19 @@ def test_legacy_openai_settings_still_work() -> None:
     assert settings.llm_model == "gpt-4.1-mini"
 
 
+def test_legacy_openai_fallback_ignores_openrouter_base_url_without_openrouter_key() -> None:
+    settings = Settings(
+        _env_file=None,
+        openai_api_key="sk-test-value",
+        openrouter_base_url=DEFAULT_OPENROUTER_BASE_URL,
+        openrouter_model=DEFAULT_OPENROUTER_MODEL,
+    )
+
+    assert settings.llm_api_key == "sk-test-value"
+    assert settings.llm_base_url is None
+    assert settings.llm_model == "gpt-4.1-mini"
+
+
 def test_runtime_validation_requires_webhook_secret_only_in_webhook_mode() -> None:
     settings = Settings(
         telegram_bot_token="123456789:abcdefghijklmnopqrstuvwxyzABCDE",

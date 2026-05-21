@@ -115,22 +115,16 @@ class Settings(BaseSettings):
         return _first_non_blank(self.openrouter_api_key, self.openai_api_key) or ""
 
     @property
-    def llm_base_url(self) -> str:
+    def llm_base_url(self) -> str | None:
         if self._uses_openrouter_config:
             return _first_non_blank(self.openrouter_base_url) or DEFAULT_OPENROUTER_BASE_URL
-        return (
-            _first_non_blank(self.openai_base_url, self.openrouter_base_url)
-            or DEFAULT_OPENROUTER_BASE_URL
-        )
+        return _first_non_blank(self.openai_base_url)
 
     @property
     def llm_model(self) -> str:
         if self._uses_openrouter_config:
             return _first_non_blank(self.openrouter_model) or DEFAULT_OPENROUTER_MODEL
-        return (
-            _first_non_blank(self.openai_model, self.openrouter_model)
-            or DEFAULT_OPENROUTER_MODEL
-        )
+        return _first_non_blank(self.openai_model) or "gpt-4.1-mini"
 
     @property
     def _uses_openrouter_config(self) -> bool:
@@ -139,7 +133,6 @@ class Settings(BaseSettings):
             _first_non_blank(self.openrouter_api_key)
             or api_key.startswith("sk-or-")
             or "openrouter.ai" in (self.openai_base_url or "").lower()
-            or "openrouter.ai" in (self.openrouter_base_url or "").lower()
         )
 
     def validate_for_runtime(self, mode: Literal["webhook", "polling"] | None = None) -> list[str]:
