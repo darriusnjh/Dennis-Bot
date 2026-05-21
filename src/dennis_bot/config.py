@@ -9,6 +9,10 @@ from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+DEFAULT_OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+DEFAULT_OPENROUTER_MODEL = "x-ai/grok-4.3"
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -32,6 +36,9 @@ class Settings(BaseSettings):
     admin_telegram_user_ids: list[int] = Field(default_factory=list)
     trusted_group_chat_id: int | None = None
 
+    openrouter_api_key: str = ""
+    openrouter_base_url: str | None = ""
+    openrouter_model: str = ""
     openai_api_key: str = ""
     openai_base_url: str | None = None
     openai_model: str = "gpt-4.1-mini"
@@ -103,14 +110,46 @@ class Settings(BaseSettings):
     def brightdata_webhook_path(self) -> str:
         return "/webhooks/brightdata"
 
+    @property
+    def llm_api_key(self) -> str:
+        return _first_non_blank(self.openrouter_api_key, self.openai_api_key) or ""
+
+    @property
+    def llm_base_url(self) -> str:
+        if self._uses_openrouter_config:
+            return _first_non_blank(self.openrouter_base_url) or DEFAULT_OPENROUTER_BASE_URL
+        return (
+            _first_non_blank(self.openai_base_url, self.openrouter_base_url)
+            or DEFAULT_OPENROUTER_BASE_URL
+        )
+
+    @property
+    def llm_model(self) -> str:
+        if self._uses_openrouter_config:
+            return _first_non_blank(self.openrouter_model) or DEFAULT_OPENROUTER_MODEL
+        return (
+            _first_non_blank(self.openai_model, self.openrouter_model)
+            or DEFAULT_OPENROUTER_MODEL
+        )
+
+    @property
+    def _uses_openrouter_config(self) -> bool:
+        api_key = self.llm_api_key
+        return bool(
+            _first_non_blank(self.openrouter_api_key)
+            or api_key.startswith("sk-or-")
+            or "openrouter.ai" in (self.openai_base_url or "").lower()
+            or "openrouter.ai" in (self.openrouter_base_url or "").lower()
+        )
+
     def validate_for_runtime(self, mode: Literal["webhook", "polling"] | None = None) -> list[str]:
         errors: list[str] = []
         if not self.telegram_bot_token:
             errors.append("TELEGRAM_BOT_TOKEN is required")
         if not self.admin_telegram_user_ids:
             errors.append("ADMIN_TELEGRAM_USER_IDS should include at least one Telegram user ID")
-        if not self.openai_api_key:
-            errors.append("OPENAI_API_KEY is required for LLM responses")
+        if not self.llm_api_key:
+            errors.append("OPENROUTER_API_KEY or OPENAI_API_KEY is required for LLM responses")
         if not self.simplemem_mcp_url:
             errors.append("SIMPLEMEM_MCP_URL is required")
         if not self.simplemem_mcp_token:
@@ -164,6 +203,16 @@ def _strip_optional_env_quotes(value: object) -> object:
     if len(stripped) >= 2 and stripped[0] == stripped[-1] and stripped[0] in {"'", '"'}:
         return stripped[1:-1]
     return value
+
+
+def _first_non_blank(*values: object) -> str | None:
+    for value in values:
+        if value is None:
+            continue
+        text = str(value).strip()
+        if text:
+            return text
+    return None
 
 
 @lru_cache

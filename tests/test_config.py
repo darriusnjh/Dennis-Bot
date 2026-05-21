@@ -1,10 +1,14 @@
-from pathlib import Path
 import logging
+from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
 
-from dennis_bot.config import Settings
+from dennis_bot.config import (
+    DEFAULT_OPENROUTER_BASE_URL,
+    DEFAULT_OPENROUTER_MODEL,
+    Settings,
+)
 from dennis_bot.logging_config import SecretRedactionFilter, configure_logging, redact
 
 
@@ -42,11 +46,36 @@ def test_settings_tolerate_quoted_env_values(monkeypatch) -> None:
     assert settings.telegram_sticker_packs == []
 
 
+def test_openrouter_settings_default_to_grok_43(monkeypatch) -> None:
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-test-value")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-legacy-value")
+    monkeypatch.setenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
+    monkeypatch.setenv("OPENAI_MODEL", "gpt-5-nano")
+
+    settings = Settings(_env_file=None)
+
+    assert settings.llm_api_key == "sk-or-test-value"
+    assert settings.llm_base_url == DEFAULT_OPENROUTER_BASE_URL
+    assert settings.llm_model == DEFAULT_OPENROUTER_MODEL
+
+
+def test_legacy_openai_settings_still_work() -> None:
+    settings = Settings(
+        openai_api_key="sk-test-value",
+        openai_base_url="https://api.openai.com/v1",
+        openai_model="gpt-4.1-mini",
+    )
+
+    assert settings.llm_api_key == "sk-test-value"
+    assert settings.llm_base_url == "https://api.openai.com/v1"
+    assert settings.llm_model == "gpt-4.1-mini"
+
+
 def test_runtime_validation_requires_webhook_secret_only_in_webhook_mode() -> None:
     settings = Settings(
         telegram_bot_token="123456789:abcdefghijklmnopqrstuvwxyzABCDE",
         admin_telegram_user_ids="123",
-        openai_api_key="sk-test-value",
+        openrouter_api_key="sk-or-test-value",
         simplemem_mcp_url="https://mcp.simplemem.cloud/mcp",
         simplemem_mcp_token="simplemem-token-value",
         telegram_webhook_secret="",
@@ -55,9 +84,8 @@ def test_runtime_validation_requires_webhook_secret_only_in_webhook_mode() -> No
     assert "TELEGRAM_WEBHOOK_SECRET is required for webhook mode" in settings.validate_for_runtime(
         mode="webhook"
     )
-    assert "TELEGRAM_WEBHOOK_SECRET is required for webhook mode" not in settings.validate_for_runtime(
-        mode="polling"
-    )
+    polling_errors = settings.validate_for_runtime(mode="polling")
+    assert "TELEGRAM_WEBHOOK_SECRET is required for webhook mode" not in polling_errors
 
 
 def test_runtime_validation_requires_public_https_base_url_for_production_webhook() -> None:
@@ -66,7 +94,7 @@ def test_runtime_validation_requires_public_https_base_url_for_production_webhoo
         base_url="http://localhost:8000",
         telegram_bot_token="123456789:abcdefghijklmnopqrstuvwxyzABCDE",
         admin_telegram_user_ids="123",
-        openai_api_key="sk-test-value",
+        openrouter_api_key="sk-or-test-value",
         simplemem_mcp_url="https://mcp.simplemem.cloud/mcp",
         simplemem_mcp_token="simplemem-token-value",
         telegram_webhook_secret="webhook-secret-value",

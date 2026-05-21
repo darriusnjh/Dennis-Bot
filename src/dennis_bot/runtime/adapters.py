@@ -838,7 +838,7 @@ class NaturalMessageHandler:
         if self.orchestrator is None:
             await self.telegram.send_message(
                 update.chat.id,
-                "Conversation service is not configured. Check OPENAI_API_KEY and SimpleMem settings.",
+                "Conversation service is not configured. Check OPENROUTER_API_KEY and SimpleMem settings.",
                 reply_to_message_id=update.message_id,
             )
             return True

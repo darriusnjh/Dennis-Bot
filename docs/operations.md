@@ -89,7 +89,8 @@ Keep real secrets in `.env`, the deployment platform secret store, or an externa
 
 - `TELEGRAM_BOT_TOKEN`
 - `TELEGRAM_WEBHOOK_SECRET`
-- `OPENAI_API_KEY`
+- `OPENROUTER_API_KEY`
+- `OPENAI_API_KEY` if using the legacy OpenAI-compatible env name
 - `SIMPLEMEM_MCP_TOKEN`
 - `BRIGHTDATA_API_KEY`
 - `BRIGHTDATA_WEBHOOK_SECRET`

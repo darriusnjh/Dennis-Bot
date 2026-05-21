@@ -22,7 +22,7 @@ def test_health_endpoint_shape_for_valid_webhook_config() -> None:
         telegram_bot_token="123456789:abcdefghijklmnopqrstuvwxyzABCDE",
         telegram_webhook_secret="webhook-secret-value",
         admin_telegram_user_ids="123",
-        openai_api_key="sk-test-value",
+        openrouter_api_key="sk-or-test-value",
         simplemem_mcp_url="https://mcp.simplemem.cloud/mcp",
         simplemem_mcp_token="simplemem-token-value",
         simplemem_tenant_id="dennis-bot-global",
@@ -55,7 +55,10 @@ def test_health_endpoint_reports_missing_config_without_secret_values() -> None:
     assert body["ok"] is False
     assert body["mode"] == "webhook"
     assert "TELEGRAM_BOT_TOKEN is required" in body["config_errors"]
-    assert "OPENAI_API_KEY is required for LLM responses" in body["config_errors"]
+    assert (
+        "OPENROUTER_API_KEY or OPENAI_API_KEY is required for LLM responses"
+        in body["config_errors"]
+    )
     assert "SIMPLEMEM_MCP_TOKEN is required for SimpleMem MCP" in body["config_errors"]
     assert "TELEGRAM_WEBHOOK_SECRET is required for webhook mode" in body["config_errors"]
     assert all("token=" not in error.lower() for error in body["config_errors"])

@@ -8,7 +8,11 @@ Copy `.env.example` to `.env` and set these before running a real bot:
 
 - `TELEGRAM_BOT_TOKEN`: BotFather token.
 - `ADMIN_TELEGRAM_USER_IDS`: comma-separated Telegram user IDs allowed to administer the bot.
-- `OPENAI_API_KEY`: LLM provider key.
+- `OPENROUTER_API_KEY`: OpenRouter key for Dennis Bot chat responses.
+- `OPENROUTER_BASE_URL`: defaults to `https://openrouter.ai/api/v1`.
+- `OPENROUTER_MODEL`: defaults to `x-ai/grok-4.3`.
+- Legacy `OPENAI_API_KEY`, `OPENAI_BASE_URL`, and `OPENAI_MODEL` are still accepted for
+  OpenAI-compatible deployments, but `OPENROUTER_API_KEY` takes precedence.
 - `SIMPLEMEM_MCP_URL`: hosted SimpleMem MCP Streamable HTTP endpoint.
 - `SIMPLEMEM_MCP_TOKEN`: hosted SimpleMem MCP credential.
 - `SIMPLEMEM_TENANT_ID`: defaults to `dennis-bot-global`.
@@ -111,7 +115,7 @@ or:
 docker compose up --build
 ```
 
-Polling mode still validates the bot token, admin IDs, OpenAI key, and SimpleMem MCP configuration.
+Polling mode still validates the bot token, admin IDs, OpenRouter key, and SimpleMem MCP configuration.
 
 ## SimpleMem MCP Hosted Setup
 

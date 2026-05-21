@@ -19,6 +19,9 @@ cp .env.example .env
 
 4. Fill in Telegram, LLM, SimpleMem MCP, Bright Data, and admin settings.
 
+   Dennis Bot defaults to OpenRouter `x-ai/grok-4.3`; set `OPENROUTER_API_KEY` in
+   `.env` for chat responses.
+
 5. Start the API:
 
 ```bash

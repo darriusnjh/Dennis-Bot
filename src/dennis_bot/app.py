@@ -212,11 +212,11 @@ async def _wire_runtime_services(app: FastAPI, connection: aiosqlite.Connection)
             logger.exception("Failed to sync configured sticker packs")
 
     orchestrator = None
-    if settings.openai_api_key and memory_service is not None:
+    if settings.llm_api_key and memory_service is not None:
         llm_client = OpenAIChatClient(
-            api_key=settings.openai_api_key,
-            model=settings.openai_model,
-            base_url=settings.openai_base_url,
+            api_key=settings.llm_api_key,
+            model=settings.llm_model,
+            base_url=settings.llm_base_url,
         )
         orchestrator = ConversationOrchestrator(
             llm_client=llm_client,

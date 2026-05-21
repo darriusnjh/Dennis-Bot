@@ -10,7 +10,7 @@ Dennis Bot does not use SimpleMem as its only database. The split is:
 
 - Dennis Bot SQLite stores Telegram provenance, conversation audit rows, memory session state, manual memory records, monitor state, stickers, and knowledge-base metadata.
 - SimpleMem stores semantic memory entries in a vector database so future prompts can retrieve relevant context.
-- The OpenAI key in Dennis Bot is used for Dennis Bot's final chat response.
+- The OpenRouter key in Dennis Bot is used for Dennis Bot's final chat response.
 - The provider configured inside SimpleMem is used for memory extraction, embeddings, and retrieval planning.
 
 In normal operation, the flow is:
