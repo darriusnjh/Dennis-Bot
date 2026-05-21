@@ -61,6 +61,7 @@ def test_openrouter_settings_default_to_grok_43(monkeypatch) -> None:
 
 def test_legacy_openai_settings_still_work() -> None:
     settings = Settings(
+        _env_file=None,
         openai_api_key="sk-test-value",
         openai_base_url="https://api.openai.com/v1",
         openai_model="gpt-4.1-mini",
